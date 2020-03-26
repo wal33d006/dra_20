@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "765085753956",
+    "firebase_url": "https://dra-2020.firebaseio.com",
+    "project_id": "dra-2020",
+    "storage_bucket": "dra-2020.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:765085753956:android:2d625dcc1e3bbc5b743571",
+        "android_client_info": {
+          "package_name": "com.example.dra_20"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "765085753956-smmrvd9v7hv1bt8pmro9juuokm6e9i1h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT4p9I4OmmRuQQiD81HU7eYSKOZm8HT9g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "765085753956-smmrvd9v7hv1bt8pmro9juuokm6e9i1h.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "765085753956-7et1a5vfqigom1v9ctk39i1hjss0l8u8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.dra20"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

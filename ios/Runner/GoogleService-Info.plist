@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>765085753956-7et1a5vfqigom1v9ctk39i1hjss0l8u8.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.765085753956-7et1a5vfqigom1v9ctk39i1hjss0l8u8</string>
+	<key>API_KEY</key>
+	<string>AIzaSyB6IPijWdbrvMb-T7fL6XPR6qq_yU7PUJY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>765085753956</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.dra20</string>
+	<key>PROJECT_ID</key>
+	<string>dra-2020</string>
+	<key>STORAGE_BUCKET</key>
+	<string>dra-2020.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:765085753956:ios:829d77354e8bc064743571</string>
+	<key>DATABASE_URL</key>
+	<string>https://dra-2020.firebaseio.com</string>
+</dict>
+</plist>
