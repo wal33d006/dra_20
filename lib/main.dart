@@ -1,10 +1,12 @@
 import 'package:dra_20/request_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
+import 'package:location/location.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -29,9 +31,34 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<Item> _items = List<Item>();
 
+  bool _serviceEnabled;
+  PermissionStatus _permissionGranted;
+  LocationData _locationData;
+  Location location = new Location();
+  Geoflutterfire geo = Geoflutterfire();
+
+  _fetchCurrentLocation() async {
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _locationData = await location.getLocation();
+  }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _populateRequests();
   }
@@ -83,12 +110,14 @@ class _MyHomePageState extends State<MyHomePage> {
           }),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
+        onPressed: () async {
+          bool isRequested = false;
+          isRequested = await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => RequestPage(),
+              builder: (context) => RequestPage(location: _locationData,),
             ),
           );
+          if (isRequested) _populateRequests();
         },
         tooltip: 'Increment',
         icon: Icon(Icons.fastfood),
@@ -97,41 +126,25 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _populateRequests() {
-    _items.addAll(<Item>[
-      Item(
-        name: 'Waleed',
-        address: 'House no 76, Rashid minhas road Karachi',
-        contact: '03123434321',
-        familyMemberCount: '3',
-        itemDetail: 'Rice',
-        priority: 'high',
-      ),
-      Item(
-        name: 'Waleed',
-        address: 'House no 45, F11 Islamabad',
-        contact: '03123434321',
-        familyMemberCount: '6',
-        itemDetail: 'Flour',
-        priority: 'low',
-      ),
-      Item(
-        name: 'Waleed',
-        address: 'House no 98, DHA 6 Karachi',
-        contact: '03123434321',
-        familyMemberCount: '2',
-        itemDetail: 'Daal',
-        priority: 'low',
-      ),
-      Item(
-        name: 'Waleed',
-        address: 'House no 76, Rashid minhas road Karachi',
-        contact: '03123434321',
-        familyMemberCount: '4',
-        itemDetail: 'Sugar',
-        priority: 'high',
-      ),
-    ]);
+  void _populateRequests() async {
+    await _fetchCurrentLocation();
+
+    var collectionReference = Firestore.instance.collection('requests');
+    GeoFirePoint myLocation = geo.point(
+      latitude: _locationData.latitude,
+      longitude: _locationData.longitude,
+    );
+
+    double radius = 50;
+    String field = 'position';
+
+    var docs = await geo.collection(collectionRef: collectionReference)
+        .within(center: myLocation, radius: radius, field: field).first;
+//    var docs = (await collectionReference.getDocuments()).documents;
+    for (var doc in docs) {
+      _items.add(Item.fromSnapshot(doc));
+    }
+    setState(() {});
   }
 }
 
@@ -142,6 +155,8 @@ class Item {
   final String itemDetail;
   final String familyMemberCount;
   final String priority;
+  final GeoFirePoint position;
+  final DocumentReference reference;
 
   Item({
     this.name,
@@ -150,5 +165,29 @@ class Item {
     this.familyMemberCount,
     this.itemDetail,
     this.priority,
+    this.reference,
+    this.position,
   });
+
+  Item.fromMap(Map<String, dynamic> map, {this.reference})
+      : name = map['name'],
+        contact = map['contact'],
+        address = map['address'],
+        itemDetail = map['item'],
+        familyMemberCount = map['familyMemberCount'],
+        position = null,
+        priority = map['priority'];
+
+  Map<String, dynamic> toJson() => {
+        "name": name,
+        "contact": contact,
+        "address": address,
+        "item": itemDetail,
+        "familyMemberCount": familyMemberCount,
+        "priority": priority,
+        "position": position.data,
+      };
+
+  Item.fromSnapshot(DocumentSnapshot snapshot)
+      : this.fromMap(snapshot.data, reference: snapshot.reference);
 }
