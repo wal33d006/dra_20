@@ -39,6 +39,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Geoflutterfire geo = Geoflutterfire();
   bool _isLoading = false;
 
+  String _disasterName = '...';
+  double _radius = 10.0;
+
   Future<void> _makePhoneCall(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
@@ -77,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(_disasterName),
       ),
       body: _isLoading
           ? Center(
@@ -183,6 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _isLoading = true;
     });
     try {
+      await _getDisasterDetail();
       await _fetchCurrentLocation();
 
       var collectionReference = Firestore.instance.collection('requests');
@@ -190,13 +194,11 @@ class _MyHomePageState extends State<MyHomePage> {
         latitude: _locationData.latitude,
         longitude: _locationData.longitude,
       );
-
-      double radius = 50;
       String field = 'position';
 
       var docs = await geo
           .collection(collectionRef: collectionReference)
-          .within(center: myLocation, radius: radius, field: field)
+          .within(center: myLocation, radius: _radius, field: field)
           .first;
 //    var docs = (await collectionReference.getDocuments()).documents;
       for (var doc in docs) {
@@ -213,6 +215,14 @@ class _MyHomePageState extends State<MyHomePage> {
         _isLoading = false;
       });
     }
+  }
+
+  Future _getDisasterDetail() async {
+    var disasterDetail = await Firestore.instance.collection('config').document('disasterDetail').get();
+    setState(() {
+      _disasterName = disasterDetail.data['name'];
+      _radius = double.tryParse(disasterDetail.data['radius'].toString());
+    });
   }
 }
 
