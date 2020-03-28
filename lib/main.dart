@@ -36,6 +36,7 @@ class _MyHomePageState extends State<MyHomePage> {
   LocationData _locationData;
   Location location = new Location();
   Geoflutterfire geo = Geoflutterfire();
+  bool _isLoading = false;
 
   _fetchCurrentLocation() async {
     _serviceEnabled = await location.serviceEnabled();
@@ -69,52 +70,91 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: ListView.builder(
-          itemCount: _items.length,
-          itemBuilder: (context, index) {
-            var item = _items[index];
-            return Card(
-              elevation: 4.0,
-              child: Row(
-                children: <Widget>[
-                  Container(
-                    width: 5.0,
-                    height: 86.0,
-                    color: item.priority == 'high' ? Colors.red : Colors.orange,
-                  ),
-                  Expanded(
-                    child: ListTile(
-                      isThreeLine: true,
-                      title: Text(item.itemDetail),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(item.address),
-                          Text('Family members: ${item.familyMemberCount}')
-                        ],
-                      ),
-                      trailing: Column(
-                        children: <Widget>[
-                          Icon(Icons.call),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Icon(Icons.location_on),
-                          ),
-                        ],
-                      ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : _items == null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Unable to fetch requests',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context)
+                          .textTheme
+                          .title
+                          .copyWith(color: Colors.grey),
                     ),
                   ),
-                ],
-              ),
-            );
-          }),
+                )
+              : _items.isEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          'Looks like everyone around has been served well =]',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .title
+                              .copyWith(color: Colors.grey),
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _items.length,
+                      itemBuilder: (context, index) {
+                        var item = _items[index];
+                        return Card(
+                          elevation: 4.0,
+                          child: Row(
+                            children: <Widget>[
+                              Container(
+                                width: 5.0,
+                                height: 86.0,
+                                color: item.priority == 'high'
+                                    ? Colors.red
+                                    : Colors.orange,
+                              ),
+                              Expanded(
+                                child: ListTile(
+                                  isThreeLine: true,
+                                  title: Text(item.itemDetail),
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Text(item.address),
+                                      Text(
+                                          'Family members: ${item.familyMemberCount}')
+                                    ],
+                                  ),
+                                  trailing: Column(
+                                    children: <Widget>[
+                                      Icon(Icons.call),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(top: 8.0),
+                                        child: Icon(Icons.location_on),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           bool isRequested = false;
           isRequested = await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => RequestPage(location: _locationData,),
+              builder: (context) => RequestPage(
+                location: _locationData,
+              ),
             ),
           );
           if (isRequested) _populateRequests();
@@ -127,24 +167,40 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _populateRequests() async {
-    await _fetchCurrentLocation();
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      await _fetchCurrentLocation();
 
-    var collectionReference = Firestore.instance.collection('requests');
-    GeoFirePoint myLocation = geo.point(
-      latitude: _locationData.latitude,
-      longitude: _locationData.longitude,
-    );
+      var collectionReference = Firestore.instance.collection('requests');
+      GeoFirePoint myLocation = geo.point(
+        latitude: _locationData.latitude,
+        longitude: _locationData.longitude,
+      );
 
-    double radius = 50;
-    String field = 'position';
+      double radius = 50;
+      String field = 'position';
 
-    var docs = await geo.collection(collectionRef: collectionReference)
-        .within(center: myLocation, radius: radius, field: field).first;
+      var docs = await geo
+          .collection(collectionRef: collectionReference)
+          .within(center: myLocation, radius: radius, field: field)
+          .first;
 //    var docs = (await collectionReference.getDocuments()).documents;
-    for (var doc in docs) {
-      _items.add(Item.fromSnapshot(doc));
+      for (var doc in docs) {
+        _items.add(Item.fromSnapshot(doc));
+      }
+      setState(() {});
+    } catch (ex) {
+      print(ex);
+      setState(() {
+        _items = null;
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-    setState(() {});
   }
 }
 

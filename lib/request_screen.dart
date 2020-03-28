@@ -8,29 +8,29 @@ import 'main.dart';
 
 class RequestPage extends StatefulWidget {
   final LocationData location;
+
   RequestPage({this.location});
+
   @override
   _RequestPageState createState() => _RequestPageState();
 }
 
 class _RequestPageState extends State<RequestPage> {
-  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  int _key;
+
   String name;
   String address;
   String contact;
-  String familyMemberCount;
   String itemDesc;
+  String familyMemberCount;
   String priority = 'Tap to select priority';
 
-  Geoflutterfire geo = Geoflutterfire();
-
-  int _key;
-
   bool _isLoading = false;
-
+  bool _isPriorityError = false;
   bool _isPrioritySelected = false;
 
-  bool _isPriorityError = false;
+  Geoflutterfire geo = Geoflutterfire();
+  GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   _collapse() {
     int newKey;
@@ -44,7 +44,6 @@ class _RequestPageState extends State<RequestPage> {
     // TODO: implement initState
     super.initState();
     _collapse();
-//    _fetchCurrentLocation();
   }
 
   @override
@@ -177,10 +176,15 @@ class _RequestPageState extends State<RequestPage> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _isLoading
-            ? null
-            : () async {
+      floatingActionButton: _isLoading
+          ? FloatingActionButton(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+              onPressed: () {},
+            )
+          : FloatingActionButton.extended(
+              onPressed: () async {
                 setState(() {
                   _isPriorityError = false;
                 });
@@ -199,7 +203,6 @@ class _RequestPageState extends State<RequestPage> {
                     latitude: widget.location.latitude,
                     longitude: widget.location.longitude,
                   );
-//                  print(_locationData.latitude);
                   await Firestore.instance
                       .collection('requests')
                       .document()
@@ -221,9 +224,9 @@ class _RequestPageState extends State<RequestPage> {
                   });
                 }
               },
-        icon: Icon(Icons.cloud_done),
-        label: Text('Submit'),
-      ),
+              icon: Icon(Icons.cloud_done),
+              label: Text('Submit'),
+            ),
     );
   }
 }
