@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geoflutterfire/geoflutterfire.dart';
 import 'package:location/location.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(MyApp());
 
@@ -37,6 +38,14 @@ class _MyHomePageState extends State<MyHomePage> {
   Location location = new Location();
   Geoflutterfire geo = Geoflutterfire();
   bool _isLoading = false;
+
+  Future<void> _makePhoneCall(String url) async {
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
 
   _fetchCurrentLocation() async {
     _serviceEnabled = await location.serviceEnabled();
@@ -132,7 +141,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                   trailing: Column(
                                     children: <Widget>[
-                                      Icon(Icons.call),
+                                      GestureDetector(
+                                          child: Icon(Icons.call),
+                                          onTap: () async =>
+                                              _makePhoneCall('tel:${item.contact}')),
                                       Padding(
                                         padding:
                                             const EdgeInsets.only(top: 8.0),
